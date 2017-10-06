@@ -268,51 +268,7 @@ class DateRange implements IteratorAggregate
 		return $this->startDate->diff($this->endDate);
 	}
 
-	/**
-	 * Checks if a date is within the date range. Date range includes the start and end dates by default.
-	 *
-	 * @param string|int|\DateTime $date    A date to compare to the start and end dates
-	 * @param int|null             $exclude Optional bit flag which sets the date range to be inclusive or exclusive of
-	 *                                      the start and end dates themselves.
-	 *
-	 * @return bool Returns `true` if `$date` is between the start and end dates
-	 * @throws \InvalidArgumentException if `$date` cannot be parsed
-	 */
-	public function contains($date, ?int $exclude = null): bool
-	{
-		return $this->compare($date, $exclude) === self::COMPARE_BETWEEN;
-	}
 
-	/**
-	 * Checks if a date is before the date range. Date range includes the start and end dates by default.
-	 *
-	 * @param string|int|\DateTime $date    A date to compare to the start and end dates
-	 * @param int|null             $exclude Optional bit flag which sets the date range to be inclusive or exclusive of
-	 *                                      the start and end dates themselves.
-	 *
-	 * @return bool Returns `true` if `$date` is before the start and end dates
-	 * @throws \InvalidArgumentException if `$date` cannot be parsed
-	 */
-	public function isAfter($date, ?int $exclude = null): bool
-	{
-		return $this->compare($date, $exclude | self::EXCLUDE_START_DATE) === self::COMPARE_BEFORE;
-	}
-
-	/**
-	 * Checks if a date is after the date range. Date range includes the start and end dates by default.
-	 *
-	 * @param string|int|\DateTime $date    A date to compare to the start and end dates
-	 * @param int|null             $exclude Optional bit flag which sets the date range to be inclusive or exclusive of
-	 *                                      the start and end dates themselves.
-	 *
-	 * @return bool Returns `true` if `$date` is after the start and end dates
-	 * @throws \InvalidArgumentException if `$date` cannot be parsed
-	 */
-	public function isBefore($date, ?int $exclude = null): bool
-	{
-		$ex = $exclude | self::EXCLUDE_END_DATE;
-		return $this->compare($date, $ex) === self::COMPARE_AFTER;
-	}
 
 	/**
 	 * Compares a date to this date range and determines if it falls before, after, or between this date range.
@@ -348,19 +304,6 @@ class DateRange implements IteratorAggregate
 		}
 
 		return self::COMPARE_AFTER;
-	}
-
-	/**
-	 * Check if this date range is on a weekend
-	 * @return bool Returns `true` if start date is a Saturday and end date is the following Sunday, otherwise `false`
-	 */
-	public function isWeekend(): bool
-	{
-		if ($this->diff()->days !== 1) {
-			return false;
-		}
-
-		return ($this->startDate->format('w') === '6') && ($this->endDate->format('w') === '0');
 	}
 
 	/**
