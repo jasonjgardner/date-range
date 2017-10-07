@@ -15,6 +15,11 @@ use PHPUnit\Framework\TestCase;
 
 use jasonjgardner\DateRange\DateRange;
 
+/**
+ * DateRange test suite
+ * @author Jason Gardner
+ * @package jasonjgardner\DateRange\Test
+ */
 class DateRangeTest extends TestCase
 {
 	/**
@@ -53,6 +58,10 @@ class DateRangeTest extends TestCase
 	 */
 	private $nextDay;
 
+	/**
+	 * Timezone in which test dates occur
+	 * @var \DateTimeZone
+	 */
 	private $timezone;
 
 	public function setUp(): void
@@ -74,133 +83,246 @@ class DateRangeTest extends TestCase
 		$this->nextDay = $next->add($day);
 	}
 
-	private function assertSameTime(DateTime $dateX, DateTime $dateY, ?string $message = null): void
-	{
-		$this->assertEquals(
-			$dateX->format(DateTime::W3C),
-			$dateY->format(DateTime::W3C),
-			$message
-		);
-	}
-
-	private function assertSameTimezone(DateTime $dateX, DateTime $dateY, ?string $message = null): void
-	{
-		$this->assertEquals(
-			$dateX->getTimezone(),
-			$dateY->getTimezone(),
-			$message
-		);
-	}
-
-	private function assertSameDay(DateTime $dateX, DateTime $dateY, ?string $message = null): void
-	{
-		$this->assertEquals(
-			$dateX->format('Ymd'),
-			$dateY->format('Ymd'),
-			$message
-		);
-	}
-
 	/**
+	 * Tests if the class constructor can accept a variety of date variable types
+	 * @dataProvider provideAcceptArguments
 	 * @group constructor
+	 * @param string|int|\DateTime      $start         Start date
+	 * @param string|int|\DateTime|null $end           End date
+	 * @param string|null|\DateTimeZone $timezone      Timezone of date range dates
+	 * @param string|null|\DateInterval $interval      Interval used when iterating over dates
+	 * @param \DateTime                 $expectedStart Expected start DateTime
+	 * @param \DateTime                 $expectedEnd   Expected end DateTime
 	 */
-	public function testAcceptArguments(): void
+	public function testAcceptArguments($start, $end, $timezone, $interval, DateTime $expectedStart, DateTime $expectedEnd): void
 	{
-		/// As two string arguments
-		$DateRange = new DateRange($this->startStr, $this->endStr, $this->timezone);
+		$DateRange = new DateRange($start, $end, $timezone, $interval);
 
-		$this->assertSameTime(
-			$this->startDate,
+		$this->assertEquals(
+			$expectedStart,
 			$DateRange->getStartDate(),
 			'Start dates are not the same time'
 		);
 
-		$this->assertSameTime(
-			$this->endDate,
+		$this->assertEquals(
+			$expectedEnd,
 			$DateRange->getEndDate(),
 			'End dates are not the same time'
 		);
-
-		/// As two \DateTime arguments
-		$DateRange = new DateRange(
-			new DateTime($this->startStr, $this->timezone),
-			new DateTime($this->endStr, $this->timezone),
-			$this->timezone
-		);
-
-		$this->assertSameDay($this->startDate, $DateRange->getStartDate());
-		$this->assertSameTime($this->endDate, $DateRange->getEndDate());
-
-		/// As an array of strings
-		$DateRange = new DateRange([$this->startStr, $this->endStr], null, $this->timezone);
-
-		$this->assertSameTime($this->startDate, $DateRange->getStartDate());
-		$this->assertSameTime($this->endDate, $DateRange->getEndDate());
-
-		/// As an array of \DateTime
-		$DateRange = new DateRange([new DateTime($this->startStr), new DateTime($this->endStr)], null, $this->timezone);
-
-		$this->assertSameTime($this->startDate, $DateRange->getStartDate());
-		$this->assertSameTime($this->endDate, $DateRange->getEndDate());
-
-		/// As one string, one \DateTime
-		$DateRange = new DateRange($this->startStr, $this->endDate, $this->timezone);
-
-		$this->assertSameTime($this->startDate, $DateRange->getStartDate());
-		$this->assertSameTime($this->endDate, $DateRange->getEndDate());
 	}
 
 	/**
-	 * @group constructor
+	 * @todo Add timestamp arguments to results
+	 * @return array Arguments for `DateRangeTest::testAcceptArguments()`
 	 */
-	public function testTimezoneArgument(): void
+	public function provideAcceptArguments(): array
 	{
-		$startDate = clone $this->startDate;
-		$startDate->setTimezone(new \DateTimeZone('Antarctica/Casey'));
+		$timezone = new DateTimeZone('America/Chicago');
+		$utc = new DateTimeZone('UTC');
 
-		$endDate = clone $this->endDate;
-		$endDate->setTimezone(new \DateTimeZone('Arctic/Longyearbyen'));
+		$startStr = '2017-10-01 12:34:56 PM';
+		$endStr = '2017-10-08 4:32:10 AM';
 
-		$DateRange = new DateRange($startDate, $endDate, $this->timezone);
+		$startDate = new DateTime($startStr, $timezone);
+		$endDate = new DateTime($endStr, $timezone);
 
-		$this->assertSameTimezone(
-			$startDate,
-			$DateRange->getStartDate(),
+		return [
+			/// Input two date strings
+			[
+				$startStr,
+				'2017-10-08 4:32:10 AM',
+				null,
+				null,
+				new DateTime($startStr, $utc),
+				new DateTime($endStr, $utc)
+			],
+
+			/// Input two DateTime objects
+			[$startDate, $endDate, $timezone, null, $startDate, $endDate],
+
+			/// Input one date string and one DateTime object
+			[
+				$startStr,
+				$endDate,
+				$timezone,
+				null,
+				new DateTime($startStr, $timezone),
+				new DateTime($endStr, $timezone)
+			],
+
+			/// Input only first date to create default end date
+			[
+				$startStr,
+				null,
+				$timezone,
+				'P1D',
+				$startDate,
+				(new DateTime($startStr, $timezone))->add(new DateInterval('P1D'))
+			],
+
+			/// Input dates out of order
+			[$endDate, $startDate, $timezone, null, $startDate, $endDate],
+
+			/// Input an array of strings
+			[
+				[$startStr, $endStr],
+				null,
+				'America/Chicago',
+				null,
+				$startDate,
+				$endDate
+			],
+
+			/// Input array of DateTime objects
+			[
+				[$startDate, $endDate],
+				null,
+				$timezone,
+				null,
+				$startDate,
+				$endDate
+			],
+
+			/// Input mixed array
+			[
+				[$startStr, $endDate],
+				null,
+				$timezone,
+				null,
+				$startDate,
+				$endDate
+			],
+
+			/// Input timezone string
+			[$startDate, $endDate, $timezone->getName(), null, $startDate, $endDate],
+
+			/// Input timezone object
+			[$startDate, $endDate, $timezone, null, $startDate, $endDate],
+
+			/// Input interval string
+			[$startDate, $endDate, $timezone, 'P2Y4DT6H8M', $startDate, $endDate],
+
+			/// Input interval object
+			[$startDate, $endDate, $timezone, new DateInterval('P2Y4DT6H8M'), $startDate, $endDate]
+		];
+	}
+
+	/**
+	 * @depends testAcceptArguments
+	 * @group constructor
+	 * @expectedException \InvalidArgumentException
+	 */
+	public function testRejectStartDateArgument(): void
+	{
+		new DateRange('⛄');
+	}
+
+	/**
+	 * @depends testAcceptArguments
+	 * @group constructor
+	 * @expectedException \InvalidArgumentException
+	 */
+	public function testRejectEndDateArgument(): void
+	{
+		new DateRange('2017-10-01 12:00:00 AM', '🎷');
+	}
+
+	/**
+	 * @depends testAcceptArguments
+	 * @group constructor
+	 * @expectedException \InvalidArgumentException
+	 */
+	public function testRejectIntervalArgument(): void
+	{
+		new DateRange('2017-10-01 12:00:00 AM', null, null, '🎈');
+	}
+
+	/**
+	 * @dataProvider provideAcceptTimezoneArgument
+	 * @depends testAcceptArguments
+	 * @group constructor
+	 * @param DateTime $start Start date
+	 * @param DateTime $end   End date
+	 * @param string|\DateTimeZone $timezone Timezone name or `\DateTimeZone` object
+	 */
+	public function testAcceptTimezoneArgument(DateTime $start, DateTime $end, $timezone): void
+	{
+		$DateRange = new DateRange($start, $end, $timezone);
+
+		if ($timezone instanceof DateTimeZone) {
+			$timezone = $timezone->getName();
+		}
+
+		$this->assertEquals(
+			$timezone,
+			$DateRange->getStartDate()->getTimezone()->getName(),
 			'Start dates have different timezones'
 		);
 
-		$this->assertSameTimezone(
-			$endDate,
-			$DateRange->getEndDate(),
+		$this->assertEquals(
+			$timezone,
+			$DateRange->getEndDate()->getTimezone()->getName(),
 			'End dates have different timezones'
 		);
 	}
 
 	/**
+	 * @return array Array of start and end times with a timezone string or object
+	 */
+	public function provideAcceptTimezoneArgument(): array
+	{
+		return [
+			[
+				new DateTime('2017-10-01 05:30:45 PM', new \DateTimeZone('Antarctica/Casey')),
+				new DateTime('2017-10-08 01:11:22 AM', new \DateTimeZone('Arctic/Longyearbyen')),
+				'America/Chicago'
+			],
+			[
+				new DateTime('2017-10-01 05:30:45 PM', new \DateTimeZone('Antarctica/Casey')),
+				new DateTime('2017-10-08 01:11:22 AM', new \DateTimeZone('Arctic/Longyearbyen')),
+				new DateTimeZone('America/Chicago')
+			]
+		];
+	}
+
+	/**
+	 * @expectedException \InvalidArgumentException
+	 * @group constructor
+	 */
+	public function testRejectTimezoneArgument(): void
+	{
+		new DateRange('2017-10-01', '2017-10-02', '🍦');
+	}
+
+	/**
+	 * @depends testAcceptArguments
 	 * @group constructor
 	 */
 	public function testDefaultArguments(): void
 	{
+		$timezone = new DateTimeZone('America/Chicago');
+
 		$start = 'today';
 		$end = 'tomorrow';
 
-		$today = new DateTime($start, $this->timezone);
-		$tomorrow = new DateTime($end, $this->timezone);
+		$today = new DateTime($start, $timezone);
+		$tomorrow = new DateTime($end, $timezone);
 
 		/// As string start date, `null` end date
-		$DateRange = new DateRange($start, null, $this->timezone);
+		$DateRange = new DateRange($start, null, $timezone);
 
-		$this->assertSameTime($today, $DateRange->getStartDate());
-		$this->assertSameTime($tomorrow, $DateRange->getEndDate());
+		$this->assertEquals($today, $DateRange->getStartDate());
+		$this->assertEquals($tomorrow, $DateRange->getEndDate());
 
 		/// As \DateTime start date, `null` end date
-		$DateRange = new DateRange($today, null, $this->timezone);
+		$DateRange = new DateRange($today, null, $timezone);
 
-		$this->assertSameTime($today, $DateRange->getStartDate());
-		$this->assertSameTime($tomorrow, $DateRange->getEndDate());
+		$this->assertEquals($today, $DateRange->getStartDate());
+		$this->assertEquals($tomorrow, $DateRange->getEndDate());
 	}
 
 	/**
+	 * @covers DateRange::compare()
 	 * @group compare
 	 */
 	public function testExclusions(): void
@@ -247,46 +369,85 @@ class DateRangeTest extends TestCase
 
 		$this->assertEquals(
 			DateRange::COMPARE_AFTER,
-			$DateRange->compare($this->startDate, DateRange::EXCLUDE_END_DATE),
+			$DateRange->compare($this->endDate, DateRange::EXCLUDE_END_DATE),
 			'DateRange contains end date'
 		);
 	}
 
 	/**
-	 * @group compare
+	 * @covers DateRange::getInterval()
+	 * @group interval
+	 * @dataProvider provideInterval
+	 * @param string|int|\DateTime      $start    Start date
+	 * @param string|int|\DateTime|null $end      End date
+	 * @param string|null|\DateTimeZone $timezone Date range timezone
+	 * @param string|\DateInterval      $interval Date range iterator interval
+	 * @param \DateInterval             $expected Expected `\DateInterval` value
 	 */
-	public function testComparisons(): void
+	public function testGetInterval($start, $end, $timezone, $interval, DateInterval $expected): void
 	{
-		$DateRange = new DateRange($this->startDate, $this->endDate);
+		$DateRange = new DateRange($start, $end, $timezone, $interval);
 
-		$this->assertTrue(
-			$DateRange->isBefore($this->nextDay),
-			'DateRange is not before nextDay'
+		$this->assertEquals(
+			$expected->d,
+			$DateRange->getInterval()->d
+		);
+	}
+
+	/**
+	 * @covers DateRange::getInterval()
+	 * @covers DateRange::setInterval()
+	 * @group interval
+	 * @dataProvider provideInterval
+	 * @param string|int|\DateTime      $start    Start date
+	 * @param string|int|\DateTime|null $end      End date
+	 * @param string|null|\DateTimeZone $timezone Date range timezone
+	 * @param string|\DateInterval      $interval Date range iterator interval,
+	 * @param \DateInterval             $expected Expected DateInterval value
+	 */
+	public function testSetInterval($start, $end, $timezone, $interval, DateInterval $expected): void
+	{
+		$DateRange = new DateRange($start, $end, $timezone);
+
+		$this->assertNotEquals(
+			$expected->d,
+			$DateRange->getInterval()->d,
+			'Comparison interval and date range interval have the same number of days'
 		);
 
-		$this->assertTrue(
-			$DateRange->isAfter($this->nextDay),
-			'DateRange is not after nextDay'
-		);
+		$DateRange->setInterval($interval);
 
-		$this->assertTrue(
-			$DateRange->contains($this->startDate),
-			'DateRange does not contain start date'
+		$this->assertEquals(
+			$expected->d,
+			$DateRange->getInterval()->d,
+			'Date range interval did not change after `DateRange::setInterval()`'
 		);
+	}
 
-		$this->assertFalse(
-			$DateRange->contains($this->startDate, DateRange::EXCLUDE_START_DATE),
-			'DateRange contains $this->startDate when the start date is excluded'
-		);
+	/**
+	 * @return array
+	 */
+	public function provideInterval(): array
+	{
+		$timezone = new DateTimeZone('America/Chicago');
 
-		$this->assertTrue(
-			$DateRange->contains($this->endDate),
-			'DateRange does not contain end date'
-		);
-
-		$this->assertFalse(
-			$DateRange->contains($this->endDate, DateRange::EXCLUDE_END_DATE),
-			'DateRange contains $this->endDate when the end date is excluded'
-		);
+		return [
+			[
+				/// Input interval string
+				new DateTime('2017-10-01 01:30:00 AM', $timezone),
+				new DateTime('2017-10-08 05:45:10 PM', $timezone),
+				$timezone,
+				'P7D',
+				new DateInterval('P7D')
+			],
+			[
+				/// Input interval object
+				new DateTime('2017-10-01 01:30:00 AM', $timezone),
+				new DateTime('2017-10-08 05:45:10 PM', $timezone),
+				$timezone,
+				new DateInterval('P2D'),
+				new DateInterval('P2D')
+			]
+		];
 	}
 }
