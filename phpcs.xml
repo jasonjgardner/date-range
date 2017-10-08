@@ -2,8 +2,7 @@
 <ruleset name="date-range-ruleset">
 	<description>https://github.com/jasonjgardner/date-range
 	</description>
-	<exclude-pattern>*/tests/*</exclude-pattern>
-	<exclude-pattern>*\tests\*</exclude-pattern>
+	<exclude-pattern>./tests/*</exclude-pattern>
 	<arg name="extensions" value="php"/>
 	<arg value="np"/>
 	<rule ref="PSR2">
@@ -22,7 +21,7 @@
 	<rule ref="Generic.Formatting.DisallowMultipleStatements"/>
 	<rule ref="Generic.Formatting.SpaceAfterCast"/>
 	<rule ref="Generic.Functions.CallTimePassByReference"/>
-	<rule ref="Generic.Functions.OpeningFunctionBraceBsdAllman"/>
+	<!--<rule ref="Generic.Functions.OpeningFunctionBraceBsdAllman"/>-->
 	<rule ref="Generic.Metrics.CyclomaticComplexity"/>
 	<rule ref="Generic.NamingConventions.ConstructorName"/>
 	<rule ref="Generic.NamingConventions.UpperCaseConstantName"/>

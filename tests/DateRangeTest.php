@@ -9,82 +9,27 @@ namespace jasonjgardner\DateRange\Test;
 
 use DateTime,
 	DateTimeZone,
-	DateInterval;
-
-use PHPUnit\Framework\TestCase;
-
-use jasonjgardner\DateRange\DateRange;
+	DateInterval,
+	PHPUnit\Framework\TestCase,
+	jasonjgardner\DateRange\DateRange;
 
 /**
  * DateRange test suite
  * @author Jason Gardner
  * @package jasonjgardner\DateRange\Test
+ * @coversDefaultClass \jasonjgardner\DateRange\DateRange
  */
 class DateRangeTest extends TestCase
 {
 	/**
-	 * Start date as string
-	 * @var string
-	 */
-	private $startStr;
-
-	/**
-	 * Start date as DateTime
-	 * @var \DateTime
-	 */
-	private $startDate;
-
-	/**
-	 * End date as string
-	 * @var string
-	 */
-	private $endStr;
-
-	/**
-	 * End date as DateTime
-	 * @var \DateTime
-	 */
-	private $endDate;
-
-	/**
-	 * `\DateTime` object representing the day before `$this->startDate`
-	 * @var \DateTime
-	 */
-	private $previousDay;
-
-	/**
-	 * `\DateTime` object representing the day after `$this->endDate`
-	 * @var \DateTime
-	 */
-	private $nextDay;
-
-	/**
-	 * Timezone in which test dates occur
-	 * @var \DateTimeZone
-	 */
-	private $timezone;
-
-	public function setUp(): void
-	{
-		$this->timezone = new DateTimeZone('America/Chicago');
-
-		$this->startStr = '2017-10-01 12:34:56 PM';
-		$this->startDate = new DateTime($this->startStr, $this->timezone);
-
-		$this->endStr = '2017-10-08 4:32:10 AM';
-		$this->endDate = new DateTime($this->endStr, $this->timezone);
-
-		$day = new DateInterval('P1D');
-
-		$prev = new DateTime($this->startStr, $this->timezone);
-		$this->previousDay = $prev->sub($day);
-
-		$next = new DateTime($this->endStr, $this->timezone);
-		$this->nextDay = $next->add($day);
-	}
-
-	/**
 	 * Tests if the class constructor can accept a variety of date variable types
+	 * @covers ::__construct(
+	 * @covers ::toDate()
+	 * @covers ::getBoundaries()
+	 * @covers ::setInterval()
+	 * @covers ::instantiate()
+	 * @covers ::getStartDate()
+	 * @covers ::getEndDate()
 	 * @dataProvider provideAcceptArguments
 	 * @group constructor
 	 * @param string|int|\DateTime      $start         Start date
@@ -112,8 +57,7 @@ class DateRangeTest extends TestCase
 	}
 
 	/**
-	 * @todo Add timestamp arguments to results
-	 * @return array Arguments for `DateRangeTest::testAcceptArguments()`
+	 * @return array Array of mixed items which are acceptable arguments in `DateTime::__construct()`
 	 */
 	public function provideAcceptArguments(): array
 	{
@@ -127,8 +71,7 @@ class DateRangeTest extends TestCase
 		$endDate = new DateTime($endStr, $timezone);
 
 		return [
-			/// Input two date strings
-			[
+			'Two date strings' => [
 				$startStr,
 				'2017-10-08 4:32:10 AM',
 				null,
@@ -136,12 +79,16 @@ class DateRangeTest extends TestCase
 				new DateTime($startStr, $utc),
 				new DateTime($endStr, $utc)
 			],
-
-			/// Input two DateTime objects
-			[$startDate, $endDate, $timezone, null, $startDate, $endDate],
-
-			/// Input one date string and one DateTime object
-			[
+			'Two DateTime objects' => [$startDate, $endDate, $timezone, null, $startDate, $endDate],
+			'Two timestamps' => [
+				$startDate->getTimestamp(),
+				(string) $endDate->getTimestamp(),
+				$timezone,
+				null,
+				$startDate,
+				$endDate
+			],
+			'Date string + DateTime object' => [
 				$startStr,
 				$endDate,
 				$timezone,
@@ -149,9 +96,7 @@ class DateRangeTest extends TestCase
 				new DateTime($startStr, $timezone),
 				new DateTime($endStr, $timezone)
 			],
-
-			/// Input only first date to create default end date
-			[
+			'null end date' => [
 				$startStr,
 				null,
 				$timezone,
@@ -159,76 +104,72 @@ class DateRangeTest extends TestCase
 				$startDate,
 				(new DateTime($startStr, $timezone))->add(new DateInterval('P1D'))
 			],
-
-			/// Input dates out of order
-			[$endDate, $startDate, $timezone, null, $startDate, $endDate],
-
-			/// Input an array of strings
-			[
-				[$startStr, $endStr],
+			'Dates input out of order' => [$endDate, $startDate, $timezone, null, $startDate, $endDate],
+			'Array of strings with more than two dates' => [
+				[$startStr, '2017-10-04', $endStr],
 				null,
 				'America/Chicago',
 				null,
 				$startDate,
 				$endDate
 			],
-
-			/// Input array of DateTime objects
-			[
-				[$startDate, $endDate],
+			'Array of DateTime objects with more than two dates' => [
+				[$startDate, (new DateTime($startStr, $timezone))->add(new DateInterval('P1D')), $endDate],
 				null,
 				$timezone,
 				null,
 				$startDate,
 				$endDate
 			],
-
-			/// Input mixed array
-			[
-				[$startStr, $endDate],
-				null,
+			'Timezone argument as string' => [$startDate, $endDate, $timezone->getName(), null, $startDate, $endDate],
+			'Timezone argument as DateTimeZone object' => [$startDate, $endDate, $timezone, null, $startDate, $endDate],
+			'Interval argument as string' => [$startDate, $endDate, $timezone, 'P2Y4DT6H8M', $startDate, $endDate],
+			'Interval argument as DateInterval object' => [
+				$startDate,
+				$endDate,
 				$timezone,
-				null,
+				new DateInterval('P2Y4DT6H8M'),
 				$startDate,
 				$endDate
-			],
-
-			/// Input timezone string
-			[$startDate, $endDate, $timezone->getName(), null, $startDate, $endDate],
-
-			/// Input timezone object
-			[$startDate, $endDate, $timezone, null, $startDate, $endDate],
-
-			/// Input interval string
-			[$startDate, $endDate, $timezone, 'P2Y4DT6H8M', $startDate, $endDate],
-
-			/// Input interval object
-			[$startDate, $endDate, $timezone, new DateInterval('P2Y4DT6H8M'), $startDate, $endDate]
+			]
 		];
 	}
 
 	/**
-	 * @depends testAcceptArguments
 	 * @group constructor
 	 * @expectedException \InvalidArgumentException
+	 * @dataProvider provideRejectDateArgument
+	 * @param $var mixed Things that are not parsable dates
 	 */
-	public function testRejectStartDateArgument(): void
+	public function testRejectStartDateArgument($var): void
 	{
-		new DateRange('⛄');
+		new DateRange($var);
 	}
 
 	/**
-	 * @depends testAcceptArguments
+	 * @dataProvider provideRejectDateArgument
 	 * @group constructor
 	 * @expectedException \InvalidArgumentException
+	 * @param $var mixed Things that are not parsable dates
 	 */
-	public function testRejectEndDateArgument(): void
+	public function testRejectEndDateArgument($var): void
 	{
-		new DateRange('2017-10-01 12:00:00 AM', '🎷');
+		new DateRange('2017-10-01 12:00:00 AM', $var);
 	}
 
 	/**
-	 * @depends testAcceptArguments
+	 * @return array Arguments which will trigger an \InvalidArgumentException in the DateRange constructor
+	 */
+	public function provideRejectDateArgument(): array
+	{
+		return [
+			'String which cannot be converted to DateTime' => ['⛄'],
+			'Empty array' => [[]],
+			'Array which cannot convert to DateTime' => ['These', 'are', 'not', 'valid', 'date', 'strings']
+		];
+	}
+
+	/**
 	 * @group constructor
 	 * @expectedException \InvalidArgumentException
 	 */
@@ -272,12 +213,12 @@ class DateRangeTest extends TestCase
 	public function provideAcceptTimezoneArgument(): array
 	{
 		return [
-			[
+			'Timezone argument as a string' => [
 				new DateTime('2017-10-01 05:30:45 PM', new \DateTimeZone('Antarctica/Casey')),
 				new DateTime('2017-10-08 01:11:22 AM', new \DateTimeZone('Arctic/Longyearbyen')),
 				'America/Chicago'
 			],
-			[
+			'Timezone argument as a DateTimeZone argument' => [
 				new DateTime('2017-10-01 05:30:45 PM', new \DateTimeZone('Antarctica/Casey')),
 				new DateTime('2017-10-08 01:11:22 AM', new \DateTimeZone('Arctic/Longyearbyen')),
 				new DateTimeZone('America/Chicago')
@@ -322,18 +263,23 @@ class DateRangeTest extends TestCase
 	}
 
 	/**
-	 * @covers DateRange::compare()
+	 * @covers ::compare()
 	 * @group compare
 	 */
 	public function testExclusions(): void
 	{
-		$DateRange = new DateRange($this->startDate, $this->endDate);
+		$timezone = new DateTimeZone('America/Chicago');
+		$previousDay = new DateTime('yesterday', $timezone);
+		$startDate = new DateTime('today', $timezone);
+		$endDate = new DateTime('tomorrow', $timezone);
+
+		$DateRange = new DateRange($startDate, $endDate);
 
 		/// Compare with string
 		$this->assertEquals(
 			DateRange::COMPARE_BEFORE,
 			$DateRange->compare(
-				$this->previousDay->format('Y-m-d')
+				$previousDay->format('Y-m-d')
 			),
 			'Previous day is not before date range'
 		);
@@ -342,7 +288,7 @@ class DateRangeTest extends TestCase
 		$this->assertEquals(
 			DateRange::COMPARE_BEFORE,
 			$DateRange->compare(
-				$this->previousDay
+				$previousDay
 			),
 			'Previous day is not before date range'
 		);
@@ -350,32 +296,32 @@ class DateRangeTest extends TestCase
 		/// Inclusive
 		$this->assertEquals(
 			DateRange::COMPARE_BETWEEN,
-			$DateRange->compare($this->startDate),
+			$DateRange->compare($startDate),
 			'Start date is not within date range'
 		);
 
 		$this->assertEquals(
 			DateRange::COMPARE_BETWEEN,
-			$DateRange->compare($this->endDate),
+			$DateRange->compare($endDate),
 			'End date is not within date range'
 		);
 
 		/// Exclusions
 		$this->assertEquals(
 			DateRange::COMPARE_BEFORE,
-			$DateRange->compare($this->startDate, DateRange::EXCLUDE_START_DATE),
+			$DateRange->compare($startDate, DateRange::EXCLUDE_START_DATE),
 			'DateRange contains start date'
 		);
 
 		$this->assertEquals(
 			DateRange::COMPARE_AFTER,
-			$DateRange->compare($this->endDate, DateRange::EXCLUDE_END_DATE),
+			$DateRange->compare($endDate, DateRange::EXCLUDE_END_DATE),
 			'DateRange contains end date'
 		);
 	}
 
 	/**
-	 * @covers DateRange::getInterval()
+	 * @covers ::getInterval()
 	 * @group interval
 	 * @dataProvider provideInterval
 	 * @param string|int|\DateTime      $start    Start date
@@ -395,8 +341,8 @@ class DateRangeTest extends TestCase
 	}
 
 	/**
-	 * @covers DateRange::getInterval()
-	 * @covers DateRange::setInterval()
+	 * @covers ::getInterval()
+	 * @covers ::setInterval()
 	 * @group interval
 	 * @dataProvider provideInterval
 	 * @param string|int|\DateTime      $start    Start date
@@ -425,22 +371,21 @@ class DateRangeTest extends TestCase
 	}
 
 	/**
-	 * @return array
+	 * @return array Interval strings and objects
 	 */
 	public function provideInterval(): array
 	{
 		$timezone = new DateTimeZone('America/Chicago');
 
 		return [
-			[
-				/// Input interval string
+			'Interval as a string' => [
 				new DateTime('2017-10-01 01:30:00 AM', $timezone),
 				new DateTime('2017-10-08 05:45:10 PM', $timezone),
 				$timezone,
 				'P7D',
 				new DateInterval('P7D')
 			],
-			[
+			'Interval as DateInterval object' => [
 				/// Input interval object
 				new DateTime('2017-10-01 01:30:00 AM', $timezone),
 				new DateTime('2017-10-08 05:45:10 PM', $timezone),
@@ -449,5 +394,101 @@ class DateRangeTest extends TestCase
 				new DateInterval('P2D')
 			]
 		];
+	}
+
+	/**
+	 * @covers ::diff()
+	 */
+	public function testDiff(): void
+	{
+		$DateRange = new DateRange('2017-10-13', '2017-10-16');
+
+		$this->assertEquals(
+			$DateRange->diff()->format('%R%a days'),
+			'+3 days'
+		);
+	}
+
+	/**
+	 * @covers ::__toString()
+	 * @covers ::toString()
+	 */
+	public function testToString(): void
+	{
+		$DateRange = new DateRange('2017-10-01', '2017-10-31');
+
+		$this->assertEquals(
+			'10-01-2017 to 2017.10.31',
+			$DateRange->toString('m-d-Y', 'Y.m.d', '%s to %s'),
+			'Method DateRange::toString() output did not match expected format'
+		);
+
+		$this->assertEquals(
+			'2017-10-01 - 2017-10-31',
+			(string) $DateRange,
+			'Casting DateRange as string did not output in the expected format'
+		);
+	}
+
+	/**
+	 * @covers ::toArray()
+	 * @covers ::getDatePeriod()
+	 * @covers ::getIterator()
+	 */
+	public function testToArray(): void
+	{
+		$timezone = new DateTimeZone('America/Chicago');
+
+		$DateRange = new DateRange(
+			'October 1 2017',
+			'October 4 2017',
+			$timezone
+		);
+
+		$this->assertEquals(
+			[
+				'Sunday',
+				'Monday',
+				'Tuesday',
+				'Wednesday'
+			],
+			$DateRange->toArray('l'),
+			'DateRange array does not match expected date format'
+		);
+
+		$expected = [
+			new DateTime('Oct. 1, 2017', $timezone),
+			new DateTime('Oct. 2, 2017', $timezone),
+			new DateTime('Oct. 3, 2017', $timezone),
+			new DateTime('Oct. 4, 2017', $timezone)
+		];
+
+		$this->assertEquals(
+			$expected,
+			$DateRange->toArray(),
+			'DateRange array does not contain matching DateTime objects'
+		);
+
+		$this->assertEquals(
+			[
+				'10-01-2017',
+				'10-04-2017'
+			],
+			$DateRange->toArray('m-d-Y', true),
+			'DateRange short array output does not match the expected format'
+		);
+
+		/// Test iterator
+		$results = [];
+
+		foreach ($DateRange as $date) {
+			$results[] = $date;
+		}
+
+		$this->assertEquals(
+			$expected,
+			$results,
+			'DateRange array from iterator did not produce expected results'
+		);
 	}
 }

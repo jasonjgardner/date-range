@@ -82,22 +82,24 @@ class DateRange implements IteratorAggregate
 	 */
 	public function __construct($startDate, $endDate = null, $timezone = null, $interval = null)
 	{
-		if (is_array($startDate) && count($startDate) > 1) {
-			[$startDate, $endDate] = $startDate;
-		}
-
 		$timezone = self::instantiate(
 			$timezone,
 			DateTimeZone::class,
-			'Timezone argument must be an instance of `\\DateTimeZone` or a supported PHP timezone name string.'
+			'Timezone argument must be an instance of `\\DateTimeZone` or a supported PHP timezone name 
+			string.'
 		) ?? new DateTimeZone('UTC');
+
+		if (is_array($startDate)) {
+			/// Find the earliest and latest dates in the array
+			[$startDate, $endDate] = self::getBoundaries($startDate, $timezone);
+		}
 
 		try {
 			$this->interval = self::instantiate(
 				$interval,
 				DateInterval::class,
-				'Could not parse date range interval. Argument must be an instance of `\\DateInterval` or a
-			well-formatted interval string.'
+				'Could not parse date range interval. Argument must be an instance of `\\DateInterval`
+				or a well-formatted interval string.'
 			) ?? new DateInterval('P1D');
 
 			$this->startDate = self::toDate($startDate, $timezone);
@@ -121,6 +123,72 @@ class DateRange implements IteratorAggregate
 		if ($this->startDate > $this->endDate) {
 			[$this->startDate, $this->endDate] = [$this->endDate, $this->startDate];
 		}
+	}
+
+	/**
+	 * Parse an array of dates and return the start and end dates as `\DateTime` objects
+	 *
+	 * @static
+	 *
+	 * @param array         $dates    Array of `\DateTime` objects, timestamp intervals, or parsable date strings
+	 * @param \DateTimeZone $timezone The timezone to apply to parsed dates
+	 *
+	 * @return array An array containing a `\DateTime` object for the start date, and a `\DateTime` or `null` value as
+	 *               the end date.
+	 * @throws \InvalidArgumentException if the `$dates` array contains no parsable dates or `\DateTime` objects
+	 */
+	private static function getBoundaries(array $dates, DateTimeZone $timezone): array
+	{
+		$filtered = array_filter(
+			$dates,
+			function ($item): bool {
+				/// Filter out items which could trigger errors while parsing dates
+				return (
+					$item instanceof DateTime
+					|| is_numeric($item)
+					|| (is_string($item) && strtotime($item) !== false)
+				);
+			}
+		);
+
+		$dateCount = count($filtered);
+
+		if ($dateCount < 1) {
+			throw new InvalidArgumentException(
+				'Could not convert array to dates. The array does not contain any parsable dates.'
+			);
+		}
+
+		$dates = array_map(
+			function ($date) use ($timezone): DateTime {
+				return self::toDate($date, $timezone);
+			},
+			$filtered
+		);
+
+		/// Sort dates in ascending order
+		usort($dates, function (DateTime $thisDate, DateTime $thatDate): int {
+			if ($thisDate == $thatDate) {
+				return 0;
+			}
+
+			if ($thisDate < $thatDate) {
+				return -1;
+			}
+
+			return 1;
+		});
+
+		/// Return a `null` end date if array is too short. Null end dates will be converted to a date one
+		/// `$this->interval` after the start date.
+		$endDate = null;
+
+		if ($dateCount > 1) {
+			$endDate = array_slice($dates, -1);
+		}
+
+		/// Return earliest and latest date
+		return [$dates[0], $endDate[0]];
 	}
 
 	/**
@@ -242,12 +310,12 @@ class DateRange implements IteratorAggregate
 	 * Gets the date period between the start and end dates
 	 *
 	 * @param \DateInterval|null $interval Interval between dates. Defaults to `$this->interval` if `null`
-	 * @param int|null           $exclude  Optional bit flag which sets the date range to be inclusive or exclusive of
+	 * @param int                $exclude  Optional bit flag which sets the date range to be inclusive or exclusive of
 	 *                                     the start and end dates themselves.
 	 *
 	 * @return \DatePeriod Date period between date range dates
 	 */
-	public function getDatePeriod(?DateInterval $interval = null, ?int $exclude = null): DatePeriod
+	public function getDatePeriod(?DateInterval $interval = null, int $exclude = 0): DatePeriod
 	{
 		$endDate = $this->endDate;
 
@@ -257,7 +325,7 @@ class DateRange implements IteratorAggregate
 			$endDate->modify('+1 sec');
 		}
 
-		$options = null;
+		$options = 0;
 
 		if ($exclude & self::EXCLUDE_START_DATE) {
 			$options = DatePeriod::EXCLUDE_START_DATE;
@@ -302,13 +370,13 @@ class DateRange implements IteratorAggregate
 	 * Compares a date to this date range and determines if it falls before, after, or between this date range.
 	 *
 	 * @param string|int|\DateTime $date    A date to compare to the start and end dates
-	 * @param int|null             $exclude Optional bit flag which sets the date range to be inclusive or exclusive of
+	 * @param int                  $exclude Optional bit flag which sets the date range to be inclusive or exclusive of
 	 *                                      the start and end dates themselves.
 	 *
 	 * @return int Returns `-1` if `$date` is before this date range, `1` if it's after, or `0` if it's between dates
 	 * @throws InvalidArgumentException if `$date` can not be parsed
 	 */
-	public function compare($date, ?int $exclude = null): int
+	public function compare($date, int $exclude = 0): int
 	{
 		$date = self::toDate($date);
 
@@ -335,65 +403,6 @@ class DateRange implements IteratorAggregate
 	}
 
 	/**
-	 * Checks if a date is within the date range. Date range includes the start and end dates by default.
-	 *
-	 * @param string|int|\DateTime $date    A date to compare to the start and end dates
-	 * @param int|null             $exclude Optional bit flag which sets the date range to be inclusive or exclusive of
-	 *                                      the start and end dates themselves.
-	 *
-	 * @return bool Returns `true` if `$date` is between the start and end dates
-	 * @throws InvalidArgumentException if `$date` cannot be parsed
-	 */
-	public function contains($date, ?int $exclude = null): bool
-	{
-		return $this->compare($date, $exclude) === self::COMPARE_BETWEEN;
-	}
-
-	/**
-	 * Checks if a date is before the date range. Date range includes the start and end dates by default.
-	 *
-	 * @param string|int|\DateTime $date    A date to compare to the start and end dates
-	 * @param int|null             $exclude Optional bit flag which sets the date range to be inclusive or exclusive of
-	 *                                      the start and end dates themselves.
-	 *
-	 * @return bool Returns `true` if `$date` is before the start and end dates
-	 * @throws InvalidArgumentException if `$date` cannot be parsed
-	 */
-	public function isAfter($date, ?int $exclude = null): bool
-	{
-		return $this->compare($date, $exclude | self::EXCLUDE_START_DATE) === self::COMPARE_BEFORE;
-	}
-
-	/**
-	 * Checks if a date is after the date range. Date range includes the start and end dates by default.
-	 *
-	 * @param string|int|\DateTime $date    A date to compare to the start and end dates
-	 * @param int|null             $exclude Optional bit flag which sets the date range to be inclusive or exclusive of
-	 *                                      the start and end dates themselves.
-	 *
-	 * @return bool Returns `true` if `$date` is after the start and end dates
-	 * @throws InvalidArgumentException if `$date` cannot be parsed
-	 */
-	public function isBefore($date, ?int $exclude = null): bool
-	{
-		return $this->compare($date, $exclude | self::EXCLUDE_END_DATE) === self::COMPARE_AFTER;
-	}
-
-	/**
-	 * Check if a date range is on a weekend
-	 * @return bool Returns `true` if start date is a Saturday and end date is the following Sunday, otherwise `false`
-	 */
-	public function isWeekend(): bool
-	{
-		if ($this->diff()->days !== 1) {
-			return false;
-		}
-
-		return ((int) $this->startDate->format('w') === 6)
-			&& ((int) $this->endDate->format('w') === 0);
-	}
-
-	/**
 	 * Return formatted date range when cast as string
 	 * @return string Formatted date range dates
 	 * @uses \jasonjgardner\DateRange\DateRange::toString()
@@ -412,8 +421,11 @@ class DateRange implements IteratorAggregate
 	 *
 	 * @return string Start and end date formatted according to parameters
 	 */
-	public function toString(string $startFormat = 'Y-m-d', ?string $endFormat = null, string $strFormat = '%s - %s'): string
-	{
+	public function toString(
+		string $startFormat = 'Y-m-d',
+		?string $endFormat = null,
+		string $strFormat = '%s - %s'
+	): string {
 		return sprintf(
 			$strFormat,
 			$this->startDate->format($startFormat),
@@ -433,14 +445,14 @@ class DateRange implements IteratorAggregate
 	 */
 	public function toArray(?string $format = null, bool $short = false): array
 	{
-		if ($short) {
-			return [
-				$this->startDate,
-				$this->endDate
-			];
-		}
+		$dates = [
+			$this->startDate,
+			$this->endDate
+		];
 
-		$dates = iterator_to_array($this->getDatePeriod());
+		if (!$short) {
+			$dates = iterator_to_array($this->getDatePeriod());
+		}
 
 		if ($format === null) {
 			return $dates;
