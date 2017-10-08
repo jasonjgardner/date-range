@@ -96,17 +96,34 @@ class DateRangeTest extends TestCase
 				new DateTime($startStr, $timezone),
 				new DateTime($endStr, $timezone)
 			],
-			'null end date' => [
+			'Ambiguous dates' => [
+				'June 21',
+				'July 22',
+				null,
+				null,
+				new DateTime('June 21', new DateTimeZone('UTC')),
+				new DateTime('July 22', new DateTimeZone('UTC'))
+			],
+			'null non-required arguments' => [
 				$startStr,
 				null,
-				$timezone,
-				'P1D',
-				$startDate,
-				(new DateTime($startStr, $timezone))->add(new DateInterval('P1D'))
+				null,
+				null,
+				new DateTime($startStr, new DateTimeZone('UTC')),
+				(new DateTime($startStr, new DateTimeZone('UTC')))->add(new DateInterval('P1D'))
 			],
 			'Dates input out of order' => [$endDate, $startDate, $timezone, null, $startDate, $endDate],
+			'Same day' => [$startDate, $startDate, $timezone, null, $startDate, $startDate],
 			'Array of strings with more than two dates' => [
 				[$startStr, '2017-10-04', $endStr],
+				null,
+				'America/Chicago',
+				null,
+				$startDate,
+				$endDate
+			],
+			'Array with duplicate dates' => [
+				[$startStr, '2017-10-04', $endStr, '2017-10-04', $endStr],
 				null,
 				'America/Chicago',
 				null,
@@ -136,6 +153,7 @@ class DateRangeTest extends TestCase
 	}
 
 	/**
+	 * @covers ::toDate()
 	 * @group constructor
 	 * @expectedException \InvalidArgumentException
 	 * @dataProvider provideRejectDateArgument
