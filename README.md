@@ -51,6 +51,50 @@ or __1__ if the date is *after* the date range.
 > The class constants `DateRange::COMPARE_BEFORE`, `DateRange::COMPARE_BETWEEN`, and `DateRange::COMPARE_AFTER` are set to
 -1, 0, and 1 (respectively).
 
+Pass a variety of variable types to the constructor:
+
+```php
+/// Accepts `\DateTime` objects
+new DateRange(new \DateTime('today'), new \DateTime('tomorrow'));
+
+/// Accepts date strings
+new DateRange('2017-09-15', '10-15-2017');
+
+/// Accepts timestamps
+$DateRange = new DateRange(1493886600, '1499172300');
+echo $DateRange->toString('m/d/Y'); /// 05/04/2017 - 07/04/2017
+
+/// Accepts an array of dates
+$dates = [
+	'2017-10-21',
+	'2017-01-01',
+	'2017-12-31',
+	'2017-10-31'
+];
+
+$DateRange = new DateRange($dates);
+echo $DateRange->getStartDate()->format('M j'); /// Jan 1
+echo $DateRange->getEndDate()->format('M j'); /// Dec 31
+
+/// Only requires a start date argument
+$DateRange = new DateRange('12/31/2017');
+echo $DateRange->getEndDate()->format('M j, Y G:i e'); /// Jan 1, 2018 0:00 UTC
+
+/// Create dates in a certain timezone
+$date = new \DateTime(
+	'March 1, 2017 3:30 PM',
+	new \DateTimeZone('America/New_York')
+);
+
+$DateRange = new DateRange(
+	$date,
+	null,
+	new \DateTimeZone('Asia/Tokyo')
+);
+
+echo $DateRange->getStartDate()->format('M j, Y G:i e'); /// March 2, 2017 4:30 AM Asia/Tokyo
+```
+
 Format dates in range:
 
 ```php
@@ -71,6 +115,22 @@ foreach ($LaborDayWeekend as $day) {
 	/// Sep 2, 2018
 	/// Sep 3, 2018
 }
+```
+
+Find the difference between the start and end dates:
+
+```php
+$DateRange = new DateRange('Nov 4', 'Nov 8');
+echo $DateRange->diff()->format('%d days); /// 4 days 
+```
+
+## Demo
+
+Try DateRange using PHP's built-in web server.
+
+```bash
+cd demo
+php -S localhost:8000
 ```
 
 ## License

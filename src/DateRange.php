@@ -273,7 +273,7 @@ class DateRange implements IteratorAggregate
 	 * Gets the `\DateInterval` instance used in determining the date range period
 	 * @return \DateInterval
 	 */
-	public function getInterval(): DateInterval
+	public function getDateInterval(): DateInterval
 	{
 		return $this->interval;
 	}
@@ -286,7 +286,7 @@ class DateRange implements IteratorAggregate
 	 * @return \jasonjgardner\DateRange\DateRange
 	 * @throws Exception if `$interval` is an invalid spec string
 	 */
-	public function setInterval($interval): self
+	public function setDateInterval($interval): self
 	{
 		if (!$interval instanceof DateInterval) {
 			$interval = new DateInterval((string) $interval);

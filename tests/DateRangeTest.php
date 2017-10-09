@@ -26,7 +26,7 @@ class DateRangeTest extends TestCase
 	 * @covers ::__construct(
 	 * @covers ::toDate()
 	 * @covers ::getBoundaries()
-	 * @covers ::setInterval()
+	 * @covers ::setDateInterval()
 	 * @covers ::instantiate()
 	 * @covers ::getStartDate()
 	 * @covers ::getEndDate()
@@ -339,7 +339,7 @@ class DateRangeTest extends TestCase
 	}
 
 	/**
-	 * @covers ::getInterval()
+	 * @covers ::getDateInterval()
 	 * @group interval
 	 * @dataProvider provideInterval
 	 * @param string|int|\DateTime      $start    Start date
@@ -354,13 +354,13 @@ class DateRangeTest extends TestCase
 
 		$this->assertEquals(
 			$expected->d,
-			$DateRange->getInterval()->d
+			$DateRange->getDateInterval()->d
 		);
 	}
 
 	/**
-	 * @covers ::getInterval()
-	 * @covers ::setInterval()
+	 * @covers ::getDateInterval()
+	 * @covers ::setDateInterval()
 	 * @group interval
 	 * @dataProvider provideInterval
 	 * @param string|int|\DateTime      $start    Start date
@@ -375,16 +375,16 @@ class DateRangeTest extends TestCase
 
 		$this->assertNotEquals(
 			$expected->d,
-			$DateRange->getInterval()->d,
+			$DateRange->getDateInterval()->d,
 			'Comparison interval and date range interval have the same number of days'
 		);
 
-		$DateRange->setInterval($interval);
+		$DateRange->setDateInterval($interval);
 
 		$this->assertEquals(
 			$expected->d,
-			$DateRange->getInterval()->d,
-			'Date range interval did not change after `DateRange::setInterval()`'
+			$DateRange->getDateInterval()->d,
+			'Date range interval did not change after `DateRange::setDateInterval()`'
 		);
 	}
 
