@@ -1,7 +1,6 @@
 {
     "name": "jasonjgardner/date-range",
     "description": "Simple date ranges for PHP 7.1",
-    "version": "1.0.0",
     "homepage": "https://github.com/jasonjgardner/date-range",
     "license": "MIT",
     "authors": [
