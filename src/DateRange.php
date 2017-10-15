@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 /**
  * PHP Date Range
- * @version 1.0.0
+ * @version 1.0.1
  * @license MIT
  */
 
@@ -439,19 +439,27 @@ class DateRange implements IteratorAggregate
 	 * @param null|string $format When set, the array is an array of formatted strings. When
 	 *                            `null`, it is an array of `\DateTime` objects
 	 * @param bool        $short  When `true`, the array only contains the start and end dates
+	 * @param \DateInterval|null $interval Interval between dates. Defaults to `$this->interval` if `null`. Parameter is
+	 *                                     ignored if `$short` is `true`.
+	 * @param int                $exclude  Optional bit flag which sets the date range to be inclusive or exclusive of
+	 *                                     the start and end dates themselves. Parameter ignored if `$short` is `$true`.
 	 *
 	 * @return array `\DateTime` objects or formatted date strings
 	 * @throws InvalidArgumentException Thrown when `$format` is not a valid PHP date format string
 	 */
-	public function toArray(?string $format = null, bool $short = false): array
-	{
+	public function toArray(
+		?string $format = null,
+		bool $short = false,
+		?DateInterval $interval = null,
+		int $exclude = 0
+	): array {
 		$dates = [
 			$this->startDate,
 			$this->endDate
 		];
 
 		if (!$short) {
-			$dates = iterator_to_array($this->getDatePeriod());
+			$dates = iterator_to_array($this->getDatePeriod($interval, $exclude));
 		}
 
 		if ($format === null) {
