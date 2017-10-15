@@ -3,6 +3,8 @@ Simple Date Range Object for PHP __7.1__
 
 *__Earlier PHP versions__: Check out the original [DateRange](https://github.com/brtriver/date-range) by [brtriver](https://github.com/brtriver/).*
 
+[Read API documentation](http://jasongardner.co/docs/date-range/)
+
 ## Requirements
 PHP 7.1.0 or later
 
@@ -23,10 +25,10 @@ Create a date range object which contains a start `\DateTime` and an end `\DateT
 use jasonjgardner\DateRange\DateRange;
 $summer = new DateRange('2017-06-20', '2017-09-22');
 
-printf('Summer starts on %s', $summer->getStartDate()->format('F j, Y'));
+echo 'Summer starts on ', $summer->getStartDate()->format('F j, Y');
 /// Summer starts on June 21, 2017
 
-printf('The last day of summer is %s', $summer->getEndDate()->format('F j, Y'));
+echo 'The last day of summer is ', $summer->getEndDate()->format('F j, Y');
 /// The last day of summer is September 22, 2017
 ~~~
 
@@ -167,6 +169,16 @@ Try DateRange using PHP's built-in web server.
 ```bash
 cd demo
 php -S localhost:8000
+```
+
+## Documentation
+
+Hosted documentation: http://jasongardner.co/docs/date-range/
+
+Generate documentation from source: (Requires [sami.phar](https://github.com/FriendsOfPHP/Sami))
+
+```bash
+php sami.phar update sami.php
 ```
 
 ## License

@@ -530,15 +530,25 @@ print_r($rangeArray);
 	</div>
 	<!-- /.row mb-4 -->
 
-	<p class="my-4">More examples can be found in the repository&rsquo;s
-		<a href="https://github.com/jasonjgardner/date-range/blob/master/README.md" rel="noopener">
-			 <code>README.md</code>
-		</a>
-	</p>
-
 	<hr>
 
-	<p class="my-4 text-right"><a href="http://jasongardner.co" rel="noopener" target="_blank">By Jason</a></p>
+	<ul class="nav flex-xs-column mb-2">
+		<li class="nav-item">
+			<a class="nav-link" href="http://jasongardner.co/docs/date-range/" rel="noopener">Docs</a>
+		</li>
+		<!-- /.nav-item -->
+		<li class="nav-item">
+			<a class="nav-link" href="https://github.com/jasonjgardner/date-range/blob/master/README.md" rel="noopener">
+			README.md
+			</a>
+		</li>
+		<!-- /.nav-item -->
+		<li class="nav-item justify-self-end ml-auto">
+			<a class="nav-link" href="http://jasongardner.co" rel="noopener" target="_blank">By Jason</a>
+		</li>
+		<!-- /.nav-item -->
+	</ul>
+	<!-- /.nav -->
 </div>
 <!-- /.container -->
 

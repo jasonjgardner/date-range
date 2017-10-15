@@ -21,5 +21,8 @@
         "psr-4": {
             "jasonjgardner\\DateRange\\": "src/"
         }
-    }
+    },
+	"scripts": {
+		"docs": "php sami.phar update sami.php -v"
+	}
 }
