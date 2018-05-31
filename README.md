@@ -1,7 +1,10 @@
 # DateRange
 Simple Date Range Object for PHP __7.1__
 
-*__Earlier PHP versions__: Check out the original [DateRange](https://github.com/brtriver/date-range) by [brtriver](https://github.com/brtriver/).*
+*__Earlier PHP versions__: Check out the original [DateRange](https://github.com/brtriver/date-range) by 
+[brtriver](https://github.com/brtriver/).*
+
+[View demo](http://jasongardner.co/demos/date-range/)
 
 [Read API documentation](http://jasongardner.co/docs/date-range/)
 
@@ -10,7 +13,7 @@ PHP 7.1.0 or later
 
 ## Install
 
-Install using [Composer](https://getcomposer.org):
+Install using [Composer](https://packagist.org/packages/jasonjgardner/date-range):
 
 ```bash
 $ composer require jasonjgardner/date-range
@@ -97,8 +100,8 @@ if ($aries->compare($birthday) === 0) {
 date range. It will return __-1__ if the date is *before* the date range, __0__ if the date is *during* the date range,
 or __1__ if the date is *after* the date range.
 
-> The class constants `DateRange::COMPARE_BEFORE`, `DateRange::COMPARE_BETWEEN`, and `DateRange::COMPARE_AFTER` are set to
--1, 0, and 1 (respectively).
+> The class constants `DateRange::COMPARE_BEFORE`, `DateRange::COMPARE_BETWEEN`, and `DateRange::COMPARE_AFTER` are set 
+to -1, 0, and 1 (respectively).
 
 #### Differences
 
@@ -162,24 +165,24 @@ parameter, individually or together with a bitwise operator, to modify the range
 | `EXCLUDE_END_DATE`                             | Sunday  | Friday    |
 | `EXCLUDE_START_DATE` &#124; `EXCLUDE_END_DATE` | Monday  | Friday    |
 
-## Demo
+# Changelog
+All notable changes to this project will be documented in this file.
 
-Try DateRange using PHP's built-in web server.
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-```bash
-cd demo
-php -S localhost:8000
-```
+## [Unreleased]
 
-## Documentation
+## [1.1.0] - 2018-05-31
+### Changed
+- Class constant visibility has been explicitly set to `public`.
+- Global namespaces are used in place of `use`.
+- Replaced default parameter values in `::toString()` and `::toArray()`.
+- Updated year in unit tests.
 
-Hosted documentation: http://jasongardner.co/docs/date-range/
-
-Generate documentation from source: (Requires [sami.phar](https://github.com/FriendsOfPHP/Sami))
-
-```bash
-php sami.phar update sami.php
-```
+### Removed
+- Removed [demo](http://jasongardner.co/demos/date-range/) and [documentation](http://jasongardner.co/docs/date-range/) 
+generator from repository.
 
 ## License
 DateRange is licensed under the MIT license.

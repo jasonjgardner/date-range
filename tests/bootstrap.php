@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 /**
  * PHP Date Range
- * @version 1.0.1
+ * @version 1.1.0
  * @license MIT
  */
 
