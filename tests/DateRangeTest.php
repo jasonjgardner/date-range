@@ -153,23 +153,23 @@ class DateRangeTest extends TestCase
 	/**
 	 * @covers ::toDate()
 	 * @group constructor
-	 * @expectedException \InvalidArgumentException
 	 * @dataProvider provideRejectDateArgument
 	 * @param $var mixed Things that are not parsable dates
 	 */
 	public function testRejectStartDateArgument($var): void
 	{
+		$this->expectException(\InvalidArgumentException::class);
 		new DateRange($var);
 	}
 
 	/**
 	 * @dataProvider provideRejectDateArgument
 	 * @group constructor
-	 * @expectedException \InvalidArgumentException
 	 * @param $var mixed Things that are not parsable dates
 	 */
 	public function testRejectEndDateArgument($var): void
 	{
+		$this->expectException(\InvalidArgumentException::class);
 		new DateRange('2018-10-01 12:00:00 AM', $var);
 	}
 
@@ -187,10 +187,10 @@ class DateRangeTest extends TestCase
 
 	/**
 	 * @group constructor
-	 * @expectedException \InvalidArgumentException
 	 */
 	public function testRejectIntervalArgument(): void
 	{
+		$this->expectException(\InvalidArgumentException::class);
 		new DateRange('2018-10-01 12:00:00 AM', null, null, '🎈');
 	}
 
@@ -243,11 +243,11 @@ class DateRangeTest extends TestCase
 	}
 
 	/**
-	 * @expectedException \InvalidArgumentException
 	 * @group constructor
 	 */
 	public function testRejectTimezoneArgument(): void
 	{
+		$this->expectException(\InvalidArgumentException::class);
 		new DateRange('2018-10-01', '2018-10-02', '🍦');
 	}
 
