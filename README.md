@@ -4,10 +4,6 @@ Simple Date Range Object for PHP __7.1|8.0__
 *__Earlier PHP versions__: Check out the original [DateRange](https://github.com/brtriver/date-range) by 
 [brtriver](https://github.com/brtriver/).*
 
-[View demo](http://jasongardner.co/demos/date-range/)
-
-[Read API documentation](http://jasongardner.co/docs/date-range/)
-
 ## Requirements
 PHP 7.1.0 or later
 
@@ -164,25 +160,6 @@ parameter, individually or together with a bitwise operator, to modify the range
 | `EXCLUDE_START_DATE`                           | Monday  | Saturday  |
 | `EXCLUDE_END_DATE`                             | Sunday  | Friday    |
 | `EXCLUDE_START_DATE` &#124; `EXCLUDE_END_DATE` | Monday  | Friday    |
-
-# Changelog
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
-
-## [1.1.0] - 2018-05-31
-### Changed
-- Class constant visibility has been explicitly set to `public`.
-- Global namespaces are used in place of `use`.
-- Replaced default parameter values in `::toString()` and `::toArray()`.
-- Updated year in unit tests.
-
-### Removed
-- Removed [demo](http://jasongardner.co/demos/date-range/) and [documentation](http://jasongardner.co/docs/date-range/) 
-generator from repository.
 
 ## License
 DateRange is licensed under the MIT license.
