@@ -1,5 +1,5 @@
 # DateRange
-Simple Date Range Object for PHP __7.1__
+Simple Date Range Object for PHP __7.1|8.0__
 
 *__Earlier PHP versions__: Check out the original [DateRange](https://github.com/brtriver/date-range) by 
 [brtriver](https://github.com/brtriver/).*

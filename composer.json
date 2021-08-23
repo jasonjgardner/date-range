@@ -1,6 +1,6 @@
 {
     "name": "jasonjgardner/date-range",
-    "description": "Simple date ranges for PHP 7.1",
+    "description": "Simple date ranges for PHP 7.1|8.0",
     "homepage": "https://github.com/jasonjgardner/date-range",
     "license": "MIT",
     "authors": [
@@ -12,10 +12,10 @@
     "keywords": ["date", "dates", "date range"],
     "type": "library",
     "require": {
-        "php": "^7.1"
+        "php": "^7.1|^8.0"
     },
 	"require-dev": {
-		"phpunit/phpunit": "^6.1"
+		"phpunit/phpunit": "^9.5"
 	},
     "autoload": {
         "psr-4": {
